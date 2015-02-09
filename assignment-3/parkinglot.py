@@ -93,35 +93,16 @@ class ParkingLotTopo(Topo):
         uplink, hostlink, downlink = 1, 2, 3
 
         # The following template code creates a parking lot topology
-        # for N = 1
-        # TODO: Replace the template code to create a parking lot topology for any arbitrary N (>= 1)
-        # Begin: Template code
-        s1 = self.addSwitch('s1')
-        h1 = self.addHost('h1', **hconfig)
+        prior = receiver
 
-        # Wire up receiver
-        self.addLink(receiver, s1,
-                      port1=0, port2=uplink, **lconfig)
+        for clientNumber in range(0, n)
+            switch = self.addSwitch('s' + str(clientNumber))
+            host = self.addHost('h' + str(clientNumber), **hconfig)
 
-        # Wire up clients:
-        self.addLink(h1, s1,
-                      port1=0, port2=hostlink, **lconfig)
+            self.addLink(prior, switch, port1=downlink, port2=uplink, **lconfig)
+            self.addLink(host, switch, port1=0, port2=hostlink, **lconfig)
 
-        # Uncomment the next 8 lines to create a N = 3 parking lot topology
-        #s2 = self.addSwitch('s2')
-        #h2 = self.addHost('h2', **hconfig)
-        #self.addLink(s1, s2,
-        #              port1=downlink, port2=uplink, **lconfig)
-        #self.addLink(h2, s2,
-        #              port1=0, port2=hostlink, **lconfig)
-        #s3 = self.addSwitch('s3')
-        #h3 = self.addHost('h3', **hconfig)
-        #self.addLink(s2, s3,
-        #              port1=downlink, port2=uplink, **lconfig)
-        #self.addLink(h3, s3,
-        #              port1=0, port2=hostlink, **lconfig)
-
-        # End: Template code
+            prior = switch
 
 def waitListening(client, server, port):
     "Wait until server is listening on port"
@@ -155,8 +136,7 @@ def run_parkinglot_expt(net, n):
     seconds = args.time
 
     # Start the bandwidth and cwnd monitors in the background
-    monitor = Process(target=monitor_devs_ng,
-            args=('%s/bwm.txt' % args.dir, 1.0))
+    monitor = Process(target=monitor_devs_ng, args=('%s/bwm.txt' % args.dir, 1.0))
     monitor.start()
     start_tcpprobe()
 
@@ -166,8 +146,7 @@ def run_parkinglot_expt(net, n):
 
     # Start the receiver
     port = 5001
-    recvr.cmd('iperf -s -p', port,
-              '> %s/iperf_server.txt' % args.dir, '&')
+    recvr.cmd('iperf -s -p', port, '> %s/iperf_server.txt' % args.dir, '&')
 
     waitListening(sender1, recvr, port)
 
@@ -177,6 +156,11 @@ def run_parkinglot_expt(net, n):
     # Hint: waitOutput waits for the command to finish allowing you to wait on a particular process on the host
     # iperf command to start flow: 'iperf -c %s -p %s -t %d -i 1 -yc > %s/iperf_%s.txt' % (recvr.IP(), 5001, seconds, args.dir, node_name)
     # Hint (not important): You may use progress(t) to track your experiment progress
+
+    for clientNumber in range(n - 1, -1, -1)
+        host = net.getNodeByName('h' + str(clientNumber))
+        host.sendCmd('iperf -c %s -p %s -t %d -i 1 -yc > %s/iperf_%s.txt' % (recvr.IP(), 5001, seconds, args.dir, node_name))
+        host.waitOutput()
 
     recvr.cmd('kill %iperf')
 
@@ -200,8 +184,7 @@ def main():
     topo = ParkingLotTopo(n=args.n)
 
     host = custom(CPULimitedHost, cpu=.15)  # 15% of system bandwidth
-    link = custom(TCLink, bw=args.bw, delay='1ms',
-                  max_queue_size=200)
+    link = custom(TCLink, bw=args.bw, delay='1ms', max_queue_size=200)
 
     net = Mininet(topo=topo, host=host, link=link)
 
