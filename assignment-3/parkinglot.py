@@ -95,9 +95,9 @@ class ParkingLotTopo(Topo):
         # The following template code creates a parking lot topology
         prior = receiver
 
-        for clientNumber in range(0, n):
-            switch = self.addSwitch('s' + str(clientNumber))
-            host = self.addHost('h' + str(clientNumber), **hconfig)
+        for client_number in range(0, n):
+            switch = self.addSwitch('s' + str(client_number))
+            host = self.addHost('h' + str(client_number), **hconfig)
 
             self.addLink(prior, switch, port1=downlink, port2=uplink, **lconfig)
             self.addLink(host, switch, port1=0, port2=hostlink, **lconfig)
@@ -157,8 +157,9 @@ def run_parkinglot_expt(net, n):
     # iperf command to start flow: 'iperf -c %s -p %s -t %d -i 1 -yc > %s/iperf_%s.txt' % (recvr.IP(), 5001, seconds, args.dir, node_name)
     # Hint (not important): You may use progress(t) to track your experiment progress
 
-    for clientNumber in range(n - 1, -1, -1):
-        host = net.getNodeByName('h' + str(clientNumber))
+    for client_number in range(n - 1, -1, -1):
+        node_name = 'h' + str(client_number)
+        host = net.getNodeByName(node_name)
         host.sendCmd('iperf -c %s -p %s -t %d -i 1 -yc > %s/iperf_%s.txt' % (recvr.IP(), 5001, seconds, args.dir, node_name))
         host.waitOutput()
 
