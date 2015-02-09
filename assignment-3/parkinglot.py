@@ -142,13 +142,13 @@ def run_parkinglot_expt(net, n):
 
     # Get receiver and clients
     recvr = net.getNodeByName('receiver')
-    sender1 = net.getNodeByName('h1')
+    # sender1 = net.getNodeByName('h1')
 
     # Start the receiver
     port = 5001
     recvr.cmd('iperf -s -p', port, '> %s/iperf_server.txt' % args.dir, '&')
 
-    waitListening(sender1, recvr, port)
+    # waitListening(sender1, recvr, port)
 
     # TODO: start the sender iperf processes and wait for the flows to finish
     # Hint: Use getNodeByName() to get a handle on each sender.
@@ -157,11 +157,15 @@ def run_parkinglot_expt(net, n):
     # iperf command to start flow: 'iperf -c %s -p %s -t %d -i 1 -yc > %s/iperf_%s.txt' % (recvr.IP(), 5001, seconds, args.dir, node_name)
     # Hint (not important): You may use progress(t) to track your experiment progress
 
-    for client_number in range(n - 1, -1, -1):
+    for client_number in range(0, n):
         node_name = 'h' + str(client_number)
-        host = net.getNodeByName(node_name)
-        host.sendCmd('iperf -c %s -p %s -t %d -i 1 -yc > %s/iperf_%s.txt' % (recvr.IP(), 5001, seconds, args.dir, node_name))
-        host.waitOutput()
+        senderN = net.getNodeByName(node_name)
+        senderN.sendCmd('iperf -c %s -p %s -t %d -i 1 -yc > %s/iperf_%s.txt' % (recvr.IP(), port, seconds, args.dir, node_name))
+
+    for client_number in range(0, n):
+        node_name = 'h' + str(client_number)
+        senderN = net.getNodeByName(node_name)
+        senderN.waitOutput()
 
     recvr.cmd('kill %iperf')
 
